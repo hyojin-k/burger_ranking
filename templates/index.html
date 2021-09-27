@@ -1,186 +1,311 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport"
-              content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>Document</title>
 
-        <!--CSS-->
-        <link rel="stylesheet" href="../static/index.css">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>버거랭킹</title>
 
-        <!--JS-->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-                integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-                crossorigin="anonymous"></script>
+    <!-- Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
 
-        <script>
-            <!--리뷰 버튼 토글-->
-            function reviewBtn() {
-                if ($('#review_box').css('display') === 'block') {
-                    $('#review_box').hide();
-                    $('#review_btn_box').text('리뷰 보기');
-                } else {
-                    $('#review_box').show();
-                    $('#review_btn_box').text('리뷰 닫기');
-                }
+    <!--CSS-->
+    <link rel="stylesheet" href="/static/index.css">
+
+
+    <!--FONT-->
+    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Yeon+Sung&display=swap"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+
+    <!--ICON-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!--JS-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js">
+    </script>
+
+    <script>
+        <!--리뷰 버튼 토글-->
+        function reviewBtn(num, burgerId) {
+            if ($('#review_box' + num).css('display') === 'block') {
+                $('#review_box' + num).hide();
+                $(`#review_btn_box` + num).text('리뷰 보기');
+                $('#review_list_box' + burgerId).empty();
+            } else {
+                $('#review_box' + num).show();
+                $('#review_btn_box' + num).text('리뷰 닫기');
+                getComment(burgerId);
             }
+        }
 
-            // API
-            $(document).ready(function () {
-                showBurgers();
-            });
+        // API
+        //버거의 종류를 담아줄 전역변수와, 사용자의 이름을 담아줄 전역변수를 하나씩 생성.
+        let brandName;
+        let user_info = '{{user_info}}'
 
-            function showBurgers() {
-                $('#burger_box').empty();
+        $(document).ready(function () {
+            //로드 된 후, showBurgers로 모든 버거 조회.
+            showBurgers(brandName);
+        });
 
-                $.ajax({
-                    type: 'GET',
-                    url: '/mainpage',
-                    data: {},
-                    success: function (response) {
-                        if (response['result'] == 'success') {
-                            let burgers = response['all_burgers']
-                            for(let i=0; i<burgers.length;i++){
-                                let brand = burgers[i].brand;
-                                let name = burgers[i].name;
-                                let img = burgers[i].img_url;
-                                let status = burgers[i].status;
-                                let like = burgers[i].like;
-                                let dislike = burgers[i].dislike;
+        function showBurgers(string) {
+            //버거의 종류에 따라 해당하는 브랜드의 버거만 조회.
+            if ('McDonald' == string) {
+                $('#McDonald').addClass('buttoncolor')  //맥도날드 버튼색을 변경
+                $('#BURGERKING').removeClass('buttoncolor')  //그외 다른 버튼 색 제거
+                $('#LOTTERIA').removeClass('buttoncolor')
+                $('#ALL').removeClass('buttoncolor')
 
-                                let temp_html = `<div class="burger_wrap" id="burger_box">
-                                                    <div class="burger_rank"><i>1</i></div>
-                                                    <div class="burger_desc clearfix">
-                                                        <div class="burger_img"><img src="${img}" alt=""></div>
-                                                        <div class="sub_wrap">
-                                                            <p class="burger_brand">${brand}</p>
-                                                            <p class="burger_name">${name}</p>
-                                                            <p class="burger_sub">${status}</p>
-                                                        </div>
-                                                        <div class="review_write">
-                                                            <button onclick="reviewBtn()" class="review_btn" id="review_btn_box">리뷰 보기</button>
-                                                            <div class="review_wrap" id="review_box">
-                                                                <p class="review">REVIEW</p>
-                                                                <ul class="review_list_wrap">
-                                                                    <li class="review_list">맛있음</li>
-                                                                    <li class="review_list">나쁘지않음</li>
-                                                                </ul>
-                                                                <textarea class="review_text" id="review_comment" cols="30" rows="5" placeholder="리뷰를 입력하세요"></textarea>
-                                                                <button onclick="comment()" class="review_complete" id="review_complete_btn">리뷰 등록</button>
+            }
+            if ('BURGER KING' == string) {
+                $('#BURGERKING').addClass('buttoncolor')  //버거킹의 버튼색을 변경
+                $('#McDonald').removeClass('buttoncolor')  //그외 다른 버튼 색 제거
+                $('#LOTTERIA').removeClass('buttoncolor')
+                $('#ALL').removeClass('buttoncolor')
+            }
+            if ('LOTTERIA' == string) {
+                $('#LOTTERIA').addClass('buttoncolor')  //롯데리아 버튼색을 변경
+                $('#McDonald').removeClass('buttoncolor')  //그외 다른 버튼 색 제거
+                $('#BURGERKING').removeClass('buttoncolor')
+                $('#ALL').removeClass('buttoncolor')
+            }
+            if (String !== undefined)
+                brandName = string
+            //새로 화면을 리로드 하는것 보다 해당 html을 새로 그려줌
+            $('#burgers_box').empty();
+            $.ajax({
+                type: 'GET',
+                url: '/mainpage',
+                data: {type: string},
+                //성공할 경우 하나씩 append 시켜 화면을 그려준다.
+                success: function (response) {
+                    if (response['result'] == 'success') {
+                        let burgers = response['all_burgers']
+                        for (let i = 0; i < burgers.length; i++) {
+                            let num = i + 1;  //현재 배열의 인덱스
+                            let brand = burgers[i].brand;  //버거의 브랜드
+                            let name = burgers[i].name;  //버거의 이름
+                            let img = burgers[i].img_url;  //버거의 이미지 주소
+                            let status = burgers[i].status;  //버거의 설명
+                            let like = burgers[i].like;  //버거의 좋아요 수
+                            let burgerId = burgers[i].burger_id;  //버거의 고유 아이디
+                            let temp_html = `<div class="burger_wrap" id="burger_box">
+                                                        <div class="burger_rank"><i>${num}</i></div>
+                                                        <div class="burger_desc clearfix">
+                                                            <div class="burger_img"><img src="${img}" alt=""></div>
+                                                            <div class="sub_wrap">
+                                                                <p class="burger_brand">${brand}</p>
+                                                                <p class="burger_name">${name}</p>
+                                                                <p class="burger_sub">${status}</p>
+                                                            </div>
+                                                            <div class="review_write">
+                                                                <button onclick="reviewBtn(${num},${burgerId})" class="review_btn hover4" id="review_btn_box${num}">리뷰 보기</button>
+                                                                <div class="review_wrap" id="review_box${num}">
+                                                                    <p class="review">REVIEW</p>
+                                                                    <ul class="review_list_wrap" id="review_list_box${burgerId}">
+
+                                                                    </ul>
+                                                                    <textarea class="review_text" id="review_comment${num}" cols="30" rows="5" placeholder="리뷰를 입력하세요"></textarea>
+                                                                    <p id="comment-id${num}"></p>
+                                                                    <div class="review_complete_wrap">
+                                                                        <button onclick="comment(${num}, ${burgerId})" class="review_complete hover7" id="review_complete_btn">리뷰 등록</button>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                    <div class="like_wrap">
-                                                        <a href="#" onclick="like('${name}')" class="like">좋아요 <span><b>${like}</b></span></a>
-                                                        <a href="#" onclick="dislike('${name}')" class="dislike">싫어요 <span><b>${dislike}</b></span></a>
-                                                    </div>
-                                                </div>`
-                                $('#burgers_box').append(temp_html);
+                                                        <div class="like_wrap">
+                                                            <a href="#" onclick="like('${name}')" class="like hover3">
+                                                                <span class="like_icon material-icons">
+                                                                    favorite_border
+                                                                </span>
+                                                                <br>
+                                                                <span class="like_count">${like}</span>
+                                                            </a>
+                                                        </div>
+                                                    </div>`
+                            $('#burgers_box').append(temp_html);
+                        }
+                    }
+                }
+            });
+        }
+
+        //아이디 마스킹 함수
+        function maskingUser(user) {
+            //정규 표현식으로 끝 4자리 문자열을 *으로 치환
+            let masked = user.replace(/(?<=.{4})./gi, "*");
+            return masked
+        }
+
+        //리뷰 불러오기, 해당 버거의 아이디로 조회
+        function getComment(number) {
+            $.ajax({
+                type: 'GET',
+                url: '/get_comment',
+                data: {burgerComment: number},
+                success: function (response) {
+                    if (response['result'] == 'success') {
+                        let commentList = response['commentList']
+
+                        for (let i = 0; i < commentList.length; i++) {
+                            let commentid = commentList[i]._id  //코멘트의 기본 아이디
+                            let burgerid = commentList[i].burger_id  //버거의 고유 아이디
+                            let comment = commentList[i].comment  //코멘트값
+                            let username = commentList[i].username  //유저의 기본 아이디
+                            let username2 = commentList[i].username  // 마스킹 처리가 끝난 유저 아이디.
+                            if (username2 !== undefined) {
+                                username = maskingUser(username2)  //코멘트한 유저의 아이디 끝 4자리를 마스킹 처리하는 함수 실행
                             }
+                            if (username2 == '{{user_info}}') {
+                                let temp_html = ` <li class="review_list">
+                                                        <div class="review_div clearfix">
+                                                            <div class="review_icon_wrap">
+                                                                <span class="review_icon material-icons">
+                                                                    arrow_right
+                                                                </span>
+                                                            </div>
+                                                            <div class="review_main_wrap">
+                                                                <span id="review_comment${username}">${comment}</span>
+                                                                <span class="review_user">${username}</span>
+                                                            </div>
+                                                                <div id="review_btn_box${username}" class="btn_wrap">
+                                                                <button onclick="reviewDelete('${commentid}')" class="review_delete_btn hover5" >삭제</button>
+                                                            </div>
+                                                        </div>
+                                                    </li>`
+                                $('#review_list_box' + burgerid).append(temp_html) //현재 사용자가 입력한 리뷰일 경우에만 삭제 버튼 보여짐
+                            } else {
+                                let temp_html = ` <li class="review_list">
+                                                        <div class="review_div clearfix">
+                                                            <div class="review_icon_wrap">
+                                                                <span class="review_icon material-icons">
+                                                                    arrow_right
+                                                                </span>
+                                                            </div>
+                                                            <div class="review_main_wrap">
+                                                                <span id="review_comment${username}">${comment}</span>
+                                                                <span class="review_user">${username}</span>
+                                                            </div>
+                                                        </div>
+                                                    </li>`
+                                $('#review_list_box' + burgerid).append(temp_html); //현재 사용자가 입력한 리뷰가 아닐경우 삭제버튼을 보여주지않음
+                            }
+
+
                         }
                     }
-                });
+                }
+            });
+        }
+
+        // 리뷰 작성
+        function comment(Num, BurgerId) {
+            let burgerId = BurgerId;  //버거의 고유아이디
+            let review = $('#review_comment' + Num).val(); //작성된 리뷰의 값
+
+            //만약 리뷰를 작성하지 않고 작성 버튼을 눌렀을 경우
+            if (review == "") {
+                $("#comment-id" + Num).text("리뷰를 입력해주세요").addClass("comment");  //Validation 체크
+                $("#review_comment" + Num).focus();
+                return;
             }
-
-            // 리뷰 작성
-            function comment() {
-                let review = $('#review_comment').val();
-
-                $.ajax({
-                    type: 'POST',
-                    url: '/comment',
-                    data: {comment_give:review},
-                    success: function (response) {
-                        if (response['result'] == 'success') {
-                            alert('리뷰작성 완료');
-                            window.location.reload();
-                        }
+            $.ajax({
+                type: 'POST',
+                url: '/comment',
+                data: {comment_give: review, burgerId: burgerId, username: user_info},  //리뷰값, 버거의 고유아이디, 유저아이디를 넘겨줌
+                success: function (response) {
+                    if (response['result'] == 'success') {
+                        alert('리뷰작성 완료');
+                        showBurgers(brandName);  // 사용자가 누른 브랜드의 버거를 다시 조회함
                     }
-                });
-            }
+                }
+            });
+        }
 
-            // 좋아요
-            function like(name) {
-                $.ajax({
-                    type: 'POST',
-                    url: '/like',
-                    data: {'name_give':name},
-                    success: function (response) {
-                        if (response['result'] == 'success') {
-                            alert('좋아요 완료');
-                            window.location.reload();
-                        }
-                    }
-                });
-            }
 
-            // 싫어요
-            function dislike(name) {
-                $.ajax({
-                    type: 'POST',
-                    url: '/dislike',
-                    data: {'name_give':name},
-                    success: function (response) {
-                        if (response['result'] == 'success') {
-                            alert('싫어요 완료');
-                            window.location.reload();
-                        }
+        // 리뷰 삭제
+        function reviewDelete(commentid) {
+
+            $.ajax({
+                type: 'POST',
+                url: '/comment_delete',
+                data: {comment_give: commentid},  //코멘트의 고유 아이디값으로 조회
+                success: function (response) {
+                    if (response['result'] == 'success') {
+                        alert('리뷰를 삭제했습니다.')
+                        showBurgers(brandName);  // 사용자가 누른 브랜드의 버거를 다시 조회함
                     }
-                });
-            }
-        </script>
-    </head>
-    <body>
-        <header>
-            <a href="" class="title">BURGER RANKING</a>
-        </header>
-        <nav>
-            <ol>
-                <li class="nav_menu">
-                    <button class="nav_btn on">ALL</button>
-                </li>
-                <li class="nav_menu">
-                    <button class="nav_btn">McDonald</button>
-                </li>
-                <li class="nav_menu">
-                    <button class="nav_btn">BURGER KING</button>
-                </li>
-                <li class="nav_menu">
-                    <button class="nav_btn">LOTTERIA</button>
-                </li>
-            </ol>
-        </nav>
-        <div class="burgers" id="burgers_box">
-<!--            <div class="burger_wrap" id="burger_box">-->
-<!--                <div class="burger_rank"><i>1</i></div>-->
-<!--                <div class="burger_desc clearfix">-->
-<!--                    <div class="burger_img"><img src="../static/burger.png" alt=""></div>-->
-<!--                    <div class="sub_wrap">-->
-<!--                        <p class="burger_brand">맥도날드</p>-->
-<!--                        <p class="burger_name">빅맥</p>-->
-<!--                        <p class="burger_sub">100% 순 쇠고기 패티 두 장에 빅맥®만의 특별한 소스. 입안에서 살살 녹는 치즈와 신선한 양상추, 양파, 그리고 피클까지. 50년-->
-<!--                            넘게 전 세계인의 입맛을 사로 잡은 버거의 대명사.</p>-->
-<!--                    </div>-->
-<!--                    <div class="review_write">-->
-<!--                        <button onclick="reviewBtn()" class="review_btn" id="review_btn_box">REVIEW OPEN</button>-->
-<!--                        <div class="review_wrap" id="review_box">-->
-<!--                            <p class="review">REVIEW</p>-->
-<!--                            <ul class="review_list_wrap">-->
-<!--                                <li class="review_list">맛있음</li>-->
-<!--                                <li class="review_list">나쁘지않음</li>-->
-<!--                            </ul>-->
-<!--                            <textarea class="review_text" id="" cols="30" rows="5" placeholder="리뷰를 입력하세요"></textarea>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--                <div class="like_wrap">-->
-<!--                    <button type="button" class="like">좋아요 <span><b>10</b></span></button>-->
-<!--                    <button type="button" class="dislike">싫어요 <span><b>2</b></span></button>-->
-<!--                </div>-->
-<!--            </div>-->
-        </div>
-    </body>
+                }
+            });
+        }
+
+        // 좋아요
+        function like(name) {
+            $.ajax({
+                type: 'POST',
+                url: '/like',
+                data: {'name_give': name},  //버거의 이름
+                success: function (response) {
+                    if (response['result'] == 'success') {
+                        alert('좋아요 완료');
+                        showBurgers(brandName);  // 사용자가 누른 브랜드의 버거를 다시 조회함
+                    }
+                }
+            });
+        }
+
+
+        function sign_out() {
+            $.removeCookie('mytoken', {path: '/'});  //로그아웃시 사용자의 쿠키를 제거 후, 로그인 화면으로 전환
+            alert('로그아웃!')
+            window.location.href = "/login"
+        }
+    </script>
+</head>
+
+<body>
+<header class="hero is-white">
+    <div class="hero-body has-text-centered" style="padding-bottom:1rem;margin:auto;">
+        <h1 class="title is-sparta">버거랭킹</h1>
+        <h3 class="subtitle is-sparta">당신의 버거를 선택하세요</h3>
+
+    </div>
+</header>
+<nav class="clearfix">
+    <ol>
+        <li class="nav_menu">
+            <button class="nav_btn hover1 buttoncolor" id="ALL" onclick="window.location.reload()">ALL</button>
+        </li>
+        <li class="nav_menu">
+            <button class="nav_btn hover1" id="McDonald" onclick="showBurgers('McDonald')">McDonald</button>
+        </li>
+        <li class="nav_menu">
+            <button class="nav_btn hover1" id="BURGERKING" onclick="showBurgers('BURGER KING')">BURGER KING</button>
+        </li>
+        <li class="nav_menu">
+            <button class="nav_btn hover1" id="LOTTERIA" onclick="showBurgers('LOTTERIA')">LOTTERIA</button>
+        </li>
+    </ol>
+    <div class="logoutbox">
+        <button onclick="sign_out()" class="logout hover2">LOGOUT</button>
+    </div>
+</nav>
+<div class="burgers" id="burgers_box">
+    <!-- 추가 될 내용-->
+</div>
+</body>
 </html>
